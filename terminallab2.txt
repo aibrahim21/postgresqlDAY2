@@ -1,0 +1,329 @@
+amira@Amira:~$ sudo -i -u postgres
+postgres@Amira:~$ psql
+psql (16.8 (Ubuntu 16.8-0ubuntu0.24.04.1))
+Type "help" for help.
+
+postgres=# \c testdb
+You are now connected to database "testdb" as user "postgres".
+testdb=# \dt
+           List of relations
+ Schema |   Name    | Type  |  Owner   
+--------+-----------+-------+----------
+ public | exam      | table | postgres
+ public | grades    | table | postgres
+ public | stu_sub   | table | postgres
+ public | student   | table | postgres
+ public | subject   | table | postgres
+ public | track     | table | postgres
+ public | track_sub | table | postgres
+(7 rows)
+
+testdb=# \d student
+testdb=# SELECT e_name , age(birthdate) AS age FROM student;
+  e_name  |           age           
+----------+-------------------------
+ Amira    | 22 years 8 mons 17 days
+ lola     | 21 years 1 mon 27 days
+ lily     | 25 years 6 mons
+ Mohammed | 35 years 1 mon 7 days
+ Mohammed | 35 years 1 mon 7 days
+ Mohammed | 35 years 1 mon 7 days
+(6 rows)
+
+testdb=# SELECT * FROM grades;
+ stu_id | sub_id | exam_id | grade 
+--------+--------+---------+-------
+        |      1 |     101 |    85
+        |      2 |     102 |    90
+        |      3 |     103 |    78
+(3 rows)
+
+testdb=# ALTER TABLE grades
+DROP COLUMN stu_id;
+ALTER TABLE
+testdb=# SELECT * FROM grades;
+ sub_id | exam_id | grade 
+--------+---------+-------
+      1 |     101 |    85
+      2 |     102 |    90
+      3 |     103 |    78
+(3 rows)
+
+testdb=# SELECT student.e_name AS student_name , grades.grade AS grade FROM student 
+JOIN grades ON student.stuid = grades.stu_id;
+testdb=# SELECT student.e_name AS student_name , ROUND(grades.grade , 2) AS grade FROM student; 
+testdb=# \d student
+testdb=# SELECT * FROM student;
+ stuid |        email         | address | trackid |  e_name  | birthdate  | gender 
+-------+----------------------+---------+---------+----------+------------+--------
+     1 | amira@nice.com       | Abnub   |       1 | Amira    | 2002-08-15 | female
+     2 | lola@nice.com        | assuit  |       2 | lola     | 2004-03-05 | female
+     3 | lily@nice.com        | cairo   |       3 | lily     | 1999-11-01 | female
+     4 | mohammed@student.com | london  |       1 | Mohammed | 1990-03-25 | male
+     5 | mohammed@student.com | london  |       1 | Mohammed | 1990-03-25 | male
+     6 | mohammed@student.com | london  |       1 | Mohammed | 1990-03-25 | male
+(6 rows)
+
+testdb=# SELECT * FROM stu_sub;
+ stu_id | sub_id 
+--------+--------
+      1 |      1
+      2 |      2
+      3 |      3
+(3 rows)
+
+testdb=# SELECT * FROM grades;
+ sub_id | exam_id | grade 
+--------+---------+-------
+      1 |     101 |    85
+      2 |     102 |    90
+      3 |     103 |    78
+(3 rows)
+
+testdb=# ALTER TABLE grades
+ALTER COLUMN grade TYPE numeric(5,2);
+ALTER TABLE
+testdb=# UPDATE grades SET grade = 85.5 WHERE exam_id = 101;
+UPDATE grades SET grade = 90.75 WHERE exam_id = 102;
+UPDATE grades SET grade = 78.25 WHERE exam_id = 103;
+UPDATE 1
+UPDATE 1
+UPDATE 1
+testdb=# SELECT * FROM grades;
+ sub_id | exam_id | grade 
+--------+---------+-------
+      1 |     101 | 85.50
+      2 |     102 | 90.75
+      3 |     103 | 78.25
+(3 rows)
+
+testdb=# \d subject
+                       Table "public.subject"
+  Column   |          Type          | Collation | Nullable | Default 
+-----------+------------------------+-----------+----------+---------
+ subjectid | integer                |           | not null | 
+ sub_name  | character varying(255) |           |          | 
+ max_score | integer                |           |          | 
+Indexes:
+    "sudjectid_primary" PRIMARY KEY, btree (subjectid)
+Referenced by:
+    TABLE "grades" CONSTRAINT "grades_sub_id_fkey" FOREIGN KEY (sub_id) REFERENCES subject(subjectid)
+    TABLE "stu_sub" CONSTRAINT "stu_sub_sub_id_fkey" FOREIGN KEY (sub_id) REFERENCES subject(subjectid)
+    TABLE "track_sub" CONSTRAINT "track_sub_sub_id_fkey" FOREIGN KEY (sub_id) REFERENCES subject(subjectid)
+
+testdb=#  SELECT student.e_name AS student_name , ROUND(grades.grade , 2) AS grade, subject.sub_name  
+FROM student JOIN stu_sub  ON student.stuid = stu_sub.stu_id 
+JOIN grades ON stu_sub.sub_id = grades.sub_id
+JOIN subject ON stu_sub.sub_id = subject.subjectid;
+ student_name | grade |    sub_name     
+--------------+-------+-----------------
+ Amira        | 85.50 | problem solving
+ lola         | 90.75 | Clean code
+ lily         | 78.25 | Algorithms
+(3 rows)
+
+testdb=# SELECT 
+  student.e_name AS student_name,
+  ROUND(grades.grade, 1) AS grade,
+  subject.sub_name
+FROM 
+  student
+JOIN stu_sub ON student.stuid = stu_sub.stu_id
+JOIN grades ON stu_sub.sub_id = grades.sub_id
+JOIN subject ON stu_sub.sub_id = subject.subjectid;
+ student_name | grade |    sub_name     
+--------------+-------+-----------------
+ Amira        |  85.5 | problem solving
+ lola         |  90.8 | Clean code
+ lily         |  78.3 | Algorithms
+(3 rows)
+
+testdb=# SELECT 
+  stuid,
+  e_name,
+  birthdate,
+  EXTRACT(YEAR FROM age(birthdate)) AS age_years
+FROM 
+  student;
+ stuid |  e_name  | birthdate  | age_years 
+-------+----------+------------+-----------
+     1 | Amira    | 2002-08-15 |        22
+     2 | lola     | 2004-03-05 |        21
+     3 | lily     | 1999-11-01 |        25
+     4 | Mohammed | 1990-03-25 |        35
+     5 | Mohammed | 1990-03-25 |        35
+     6 | Mohammed | 1990-03-25 |        35
+(6 rows)
+
+testdb=# SELECT e_name ,birthdate ,EXTRACT( YEAR FROM birthdate) AS year_of_birth FROM student;
+  e_name  | birthdate  | year_of_birth 
+----------+------------+---------------
+ Amira    | 2002-08-15 |          2002
+ lola     | 2004-03-05 |          2004
+ lily     | 1999-11-01 |          1999
+ Mohammed | 1990-03-25 |          1990
+ Mohammed | 1990-03-25 |          1990
+ Mohammed | 1990-03-25 |          1990
+(6 rows)
+
+testdb=# INSERT INTO grades (sub_id, exam_id, grade)
+VALUES 
+  (1, 107, 86.75),
+  (2, 108, 91.25),
+  (3, 109, 79.5);
+ERROR:  insert or update on table "grades" violates foreign key constraint "grades_exam_id_fkey"
+DETAIL:  Key (exam_id)=(107) is not present in table "exam".
+
+testdb=# INSERT INTO exam (examid, date)
+VALUES 
+  (107, '2025-04-15'),
+  (108, '2025-04-16'),
+  (109, '2025-04-17');
+INSERT 0 3
+testdb=# INSERT INTO grades (sub_id, exam_id, grade)
+VALUES 
+  (1, 107, 86.75),
+  (2, 108, 91.25),
+  (3, 109, 79.5);
+INSERT 0 3
+testdb=# SELECT * FROM grades;
+ sub_id | exam_id | grade 
+--------+---------+-------
+      1 |     101 | 85.50
+      2 |     102 | 90.75
+      3 |     103 | 78.25
+      1 |     107 | 86.75
+      2 |     108 | 91.25
+      3 |     109 | 79.50
+(6 rows)
+
+testdb=# \d exam
+                Table "public.exam"
+ Column |  Type   | Collation | Nullable | Default 
+--------+---------+-----------+----------+---------
+ examid | integer |           | not null | 
+ date   | date    |           |          | 
+Indexes:
+    "examid_primary" PRIMARY KEY, btree (examid)
+Referenced by:
+    TABLE "grades" CONSTRAINT "grades_exam_id_fkey" FOREIGN KEY (exam_id) REFERENCES exam(examid)
+
+testdb=# DELETE FROM grades
+WHERE exam_id IN (107, 108, 109);
+DELETE 3
+testdb=# INSERT INTO exam (examid , date) VALUES (205 , NOW():: date);
+INSERT 0 1
+testdb=# INSERT INTO exam (examid , date) VALUES (206 , NOW():: date);
+INSERT 0 1
+testdb=# SELECT * FROM exam;
+ examid |    date    
+--------+------------
+    101 | 2025-05-05
+    102 | 2025-05-04
+    103 | 2025-05-06
+    107 | 2025-04-15
+    108 | 2025-04-16
+    109 | 2025-04-17
+    205 | 2025-05-01
+    206 | 2025-05-01
+(8 rows)
+
+testdb=# INSERT INTO grades (sub_id, exam_id, grade)
+VALUES
+  (1, 205, 88.0),
+  (2, 206, 91.5),
+  (3, 205, 80.25);
+INSERT 0 3
+testdb=# SELECT * FROM grades;
+ sub_id | exam_id | grade 
+--------+---------+-------
+      1 |     101 | 85.50
+      2 |     102 | 90.75
+      3 |     103 | 78.25
+      1 |     205 | 88.00
+      2 |     206 | 91.50
+      3 |     205 | 80.25
+(6 rows)
+
+testdb=# SELECT student.e_name AS student_name, AVG(grades.grade) AS average_grade
+FROM student
+JOIN stu_sub ON student.stuid = stu_sub.stu_id
+JOIN grades ON stu_sub.sub_id = grades.sub_id
+GROUP BY student.stuid;
+ student_name |    average_grade    
+--------------+---------------------
+ lola         | 91.125
+ lily         | 79.250
+ Amira        | 86.750
+(3 rows)
+
+testdb=# SELECT student.e_name AS student_name, ROUND(AVG(grades.grade)) AS average_grade
+FROM student
+JOIN stu_sub ON student.stuid = stu_sub.stu_id
+JOIN grades ON stu_sub.sub_id = grades.sub_id
+GROUP BY student.stuid;
+ student_name | average_grade 
+--------------+---------------
+ lola         |            91
+ lily         |            79
+ Amira        |            87
+(3 rows)
+
+testdb=# SELECT email FROM student;
+        email         
+----------------------
+ amira@nice.com
+ lola@nice.com
+ lily@nice.com
+ mohammed@student.com
+ mohammed@student.com
+ mohammed@student.com
+(6 rows)
+
+testdb=# SELECT e_name,  REPLACE(email,'student.com' , 'iti.com') AS student_email FROM student;
+  e_name  |  student_email   
+----------+------------------
+ Amira    | amira@nice.com
+ lola     | lola@nice.com
+ lily     | lily@nice.com
+ Mohammed | mohammed@iti.com
+ Mohammed | mohammed@iti.com
+ Mohammed | mohammed@iti.com
+(6 rows)
+
+testdb=# SELECT CURRENT_DATE - birthdate AS difference_days FROM student;
+ difference_days 
+-----------------
+            8295
+            7727
+            9313
+           12821
+           12821
+           12821
+(6 rows)
+
+testdb=# SELECT email FROM student 
+WHERE POSITION('.com' IN email) > 0;
+        email         
+----------------------
+ amira@nice.com
+ lola@nice.com
+ lily@nice.com
+ mohammed@student.com
+ mohammed@student.com
+ mohammed@student.com
+(6 rows)
+
+testdb=# SELECT examid, TO_CHAR(date, 'MM-DD-YYYY') AS formatted_date
+FROM exam;
+ examid | formatted_date 
+--------+----------------
+    101 | 05-05-2025
+    102 | 05-04-2025
+    103 | 05-06-2025
+    107 | 04-15-2025
+    108 | 04-16-2025
+    109 | 04-17-2025
+    205 | 05-01-2025
+    206 | 05-01-2025
+(8 rows)
