@@ -1,2 +1,2 @@
 # postgresqlDAY2
-using views, ibexes ,sequences,data types, functions on a database 
+using views, inbexes ,sequences,data types, functions on a database 
