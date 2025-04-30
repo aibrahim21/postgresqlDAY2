@@ -1,0 +1,300 @@
+
+
+#Access PostgreSQL using the default user 
+sudo -i -u postgres
+
+#Using Pgadmin4 on terminal 
+postgres@Amira:~$ psql
+psql (16.8 (Ubuntu 16.8-0ubuntu0.24.04.1))
+Type "help" for help.
+
+#6 solution 
+
+
+ testdb=# CREATE VIEW student_subject_view AS
+SELECT student.e_name AS student_name, subject.sub_name AS subject_name 
+FROM student
+JOIN stu_sub ON student.stuid = stu_sub.stu_id
+JOIN subject ON stu_sub.sub_id = subject.subjectid;
+CREATE VIEW
+testdb=#  SELECT * FROM student_subject_view ;
+ student_name |  subject_name   
+--------------+-----------------
+ Amira        | problem solving
+ lola         | Clean code
+ lily         | Algorithms
+(3 rows)
+
+
+======================================
+#7 solution 
+
+estdb=# CREATE VIEW track_and_subject AS
+testdb-# SELECT track.trackname AS track_name, subject.sub_name AS subject_name 
+FROM track
+JOIN track_sub ON track.trackid = track_sub.track_id
+JOIN subject ON subject.subjectid = track_sub.sub_id;
+CREATE VIEW
+testdb=# SELECT * FROM track_and_view;
+ERROR:  relation "track_and_view" does not exist
+LINE 1: SELECT * FROM track_and_view;
+                      ^
+testdb=# SELECT * FROM track_and_subject;
+ track_name |  subject_name   
+------------+-----------------
+ Python     | problem solving
+ AI         | Clean code
+ Testing    | Algorithms
+(3 rows)
+
+
+============================================
+
+lab #3 
+
+
+#1 solution
+
+testdb=# SELECT subject.sub_name 
+FROM subject
+LEFT JOIN track_sub ON subject.subjectid = track_sub.sub_id
+WHERE track_sub.track_id IS NULL;
+   sub_name   
+--------------
+ Astronomy
+ Sociology
+ Anthropology
+ Psychology
+ Philosophy
+(5 rows)
+
+
+=====================================
+#2 solution 
+testdb=# SELECT e_name, age(birthdate) AS age FROM student
+testdb-# ;
+  e_name  |           age           
+----------+-------------------------
+ Amira    | 22 years 8 mons 17 days
+ lola     | 21 years 1 mon 27 days
+ lily     | 25 years 6 mons
+ Mohammed | 35 years 1 mon 7 days
+ Mohammed | 35 years 1 mon 7 days
+ Mohammed | 35 years 1 mon 7 days
+(6 rows)
+
+testdb=# 
+================================
+solution #3 
+
+
+testdb=# SELECT 
+  student.e_name AS student_name,
+  ROUND(grades.grade, 2) AS grade,
+  subject.sub_name
+FROM 
+  student
+JOIN stu_sub ON student.stuid = stu_sub.stu_id
+JOIN grades ON stu_sub.sub_id = grades.sub_id
+JOIN subject ON stu_sub.sub_id = subject.subjectid;
+ student_name | grade |    sub_name     
+--------------+-------+-----------------
+ Amira        | 85.50 | problem solving
+ lola         | 90.75 | Clean code
+ lily         | 78.25 | Algorithms
+(3 rows)
+
+testdb=# SELECT 
+  student.e_name AS student_name,
+  ROUND(grades.grade, 1) AS grade,
+  subject.sub_name
+FROM 
+  student
+JOIN stu_sub ON student.stuid = stu_sub.stu_id
+JOIN grades ON stu_sub.sub_id = grades.sub_id
+JOIN subject ON stu_sub.sub_id = subject.subjectid;
+ student_name | grade |    sub_name     
+--------------+-------+-----------------
+ Amira        |  85.5 | problem solving
+ lola         |  90.8 | Clean code
+ lily         |  78.3 | Algorithms
+(3 rows)
+
+testdb=# 
+
+=========================================
+
+# 4 solution 
+
+
+                                                 ^
+testdb=# SELECT e_name, birthdate , EXTRACT(YEAR FROM birthdate) AS year_of_birth FROM student;
+  e_name  | birthdate  | year_of_birth 
+----------+------------+---------------
+ Amira    | 2002-08-15 |          2002
+ lola     | 2004-03-05 |          2004
+ lily     | 1999-11-01 |          1999
+ Mohammed | 1990-03-25 |          1990
+ Mohammed | 1990-03-25 |          1990
+ Mohammed | 1990-03-25 |          1990
+(6 rows)
+
+testdb=# 
+
+==================================
+
+
+#5 solution
+
+
+testdb=# INSERT INTO exam (examid , date) VALUES (205 , NOW():: date);
+INSERT 0 1
+testdb=# INSERT INTO exam (examid , date) VALUES (206 , NOW():: date);
+INSERT 0 1
+testdb=# SELECT * FROM exam;
+ examid |    date    
+--------+------------
+    101 | 2025-05-05
+    102 | 2025-05-04
+    103 | 2025-05-06
+    107 | 2025-04-15
+    108 | 2025-04-16
+    109 | 2025-04-17
+    205 | 2025-05-01
+    206 | 2025-05-01
+(8 rows)
+
+testdb=# INSERT INTO grades (sub_id, exam_id, grade)
+VALUES
+  (1, 205, 88.0),
+  (2, 206, 91.5),
+  (3, 205, 80.25);
+INSERT 0 3
+testdb=# SELET * FROM grades;
+ERROR:  syntax error at or near "SELET"
+LINE 1: SELET * FROM grades;
+        ^
+testdb=# SELECT * FROM grades;
+ sub_id | exam_id | grade 
+--------+---------+-------
+      1 |     101 | 85.50
+      2 |     102 | 90.75
+      3 |     103 | 78.25
+      1 |     205 | 88.00
+      2 |     206 | 91.50
+      3 |     205 | 80.25
+(6 rows)
+
+testdb=# 
+
+
+
+===========================================
+
+# 6 
+testdb=# SELECT student.e_name AS student_name, AVG(grades.grade) AS average_grade
+FROM student
+JOIN stu_sub ON student.stuid = stu_sub.stu_id
+JOIN grades ON stu_sub.sub_id = grades.sub_id
+GROUP BY student.stuid;
+ student_name |    average_grade    
+--------------+---------------------
+ lola         | 91.1250000000000000
+ lily         | 79.2500000000000000
+ Amira        | 86.7500000000000000
+(3 rows)
+
+testdb=# SELECT student.e_name AS student_name,ROUND( AVG(grades.grade)) AS average_grade
+FROM student
+JOIN stu_sub ON student.stuid = stu_sub.stu_id
+JOIN grades ON stu_sub.sub_id = grades.sub_id
+GROUP BY student.stuid;
+ student_name | average_grade 
+--------------+---------------
+ lola         |            91
+ lily         |            79
+ Amira        |            87
+(3 rows)
+
+testdb=# 
+
+===============================================
+
+#7 
+
+testdb=# SELECT email FROM student;
+        email         
+----------------------
+ amira@nice.com
+ lola@nice.com
+ lily@nice.com
+ mohammed@student.com
+ mohammed@student.com
+ mohammed@student.com
+(6 rows)
+
+testdb=# SELECT e_name,  REPLACE(email,'student.com' , 'iti.com') AS student_email FROM student;
+  e_name  |  student_email   
+----------+------------------
+ Amira    | amira@nice.com
+ lola     | lola@nice.com
+ lily     | lily@nice.com
+ Mohammed | mohammed@iti.com
+ Mohammed | mohammed@iti.com
+ Mohammed | mohammed@iti.com
+(6 rows)
+
+testdb=# 
+
+============================
+# 8 
+
+
+testdb=# SELECT CURRENT_DATE - birthdate AS difference_days FROM student;
+ difference_days 
+-----------------
+            8295
+            7727
+            9313
+           12821
+           12821
+           12821
+(6 rows)
+
+testdb=# 
+
+===========================
+#9
+testdb=# SELECT email FROM student 
+testdb-# WHERE POSITION ('.com' IN email) > 0;
+        email         
+----------------------
+ amira@nice.com
+ lola@nice.com
+ lily@nice.com
+ mohammed@student.com
+ mohammed@student.com
+ mohammed@student.com
+(6 rows)
+
+
+=================================
+# 10 
+
+
+
+testdb=# SELECT examid, TO_CHAR(date, 'MM-DD-YYYY') AS formatted_date
+FROM exam;
+ examid | formatted_date 
+--------+----------------
+    101 | 05-05-2025
+    102 | 05-04-2025
+    103 | 05-06-2025
+    107 | 04-15-2025
+    108 | 04-16-2025
+    109 | 04-17-2025
+    205 | 05-01-2025
+    206 | 05-01-2025
+(8 rows)
+
+testdb=# 
